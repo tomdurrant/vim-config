@@ -1,0 +1,16 @@
+# Module Docstring
+snippet header
+    __author__     = "`g:snips_author`"
+    __maintainer__ = "`g:snips_author`"
+    __email__      = "`g:snips_email`"
+	__created__    = "`strftime("%Y-%m-%d")`"
+    __doc__        = "${2}"
+
+snippet checkdir
+	import os
+	if os.access(${1:dirname}, 1):
+		print $1, ' exists'
+	else:
+		os.mkdir($1)
+	${2}
+
