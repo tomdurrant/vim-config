@@ -31,23 +31,50 @@ if system('uname -o') =~ '^GNU/'
   let g:make = 'make'
 endif
 
-NeoBundleLazy 'Shougo/vimproc', { 'build': {
-      \   'windows': 'make -f make_mingw32.mak',
+NeoBundle 'Shougo/vimproc', { 'build': {
+      \   'windows' : 'tools\\update-dll-mingw',
       \   'cygwin': 'make -f make_cygwin.mak',
       \   'mac': 'make -f make_mac.mak',
       \   'unix': g:make,
       \ } }
 
 
-" NeoBundleLazy 'airblade/vim-rooter'
+
+NeoBundle 'airblade/vim-rooter'
+
+let ycm_build_options = './install.sh'
+
+if executable('cmake')
+  let ycm_build_options .= ' --clang-completer --system-libclang --system-boost'
+endif
+
+if executable('go')
+  let ycm_build_options .= ' --gocode-completer'
+endif
 
 NeoBundleLazy 'Valloric/YouCompleteMe',  
       \ {
-      \ 'autoload': {'filetypes':['c', 'cpp', 'python']}, 
+      \ 'autoload': {'filetypes':['c', 'cpp', 'python', 'objcpp', 'go']}, 
       \ 'disabled': (!has('python')),
       \ 'insert': 1,
-      \ 'augroup': 'youcompletemeStart'
+      \ 'augroup': 'youcompletemeStart',
+      \ 'build_commands' : ['cmake', 'make'],
+      \ 'build': {
+      \   'unix': g:ycm_build_options,
+      \ },
       \ }
+
+NeoBundleLazy 'jeaye/color_coded', { 
+      \ 'build': {
+      \   'unix': 'cmake . && make && make install',
+      \ },
+      \ 'autoload' : { 'filetypes' : ['c', 'cpp', 'objc', 'objcpp'] },
+      \ 'build_commands' : ['cmake', 'make']
+  \}
+
+NeoBundleLazy 'rhysd/vim-clang-format',
+    \ { 'autoload' : { 'filetypes' : ['c', 'cpp', 'objc', 'objcpp'] } }
+
 
 " Colors {{{
 " ==========
@@ -56,7 +83,7 @@ NeoBundle 'tomasr/molokai'
 NeoBundle 'chriskempson/base16-vim'
 
 " Fork of NeoBundle "kien/rainbow_parentheses.vim"
-NeoBundle "amdt/vim-niji" 
+NeoBundle "luochen1990/rainbow" 
 
 if executable('ruby')
   NeoBundleLazy 'vim-ruby/vim-ruby', {
@@ -110,10 +137,10 @@ NeoBundleLazy 'vim-scripts/LargeFile'
 
 " A tree explorer plugin for vim.
 NeoBundleLazy 'scrooloose/nerdtree', { 
-      \ 'autoload' : {'commands': 'NERDTreeToggle'}} 
+      \ 'autoload' : {'commands': ['NERDTreeToggle', 'NERDTree', 'NERDTreeClose']}} 
 NeoBundleLazy 'Xuyuanp/git-nerdtree', {
 \   "autoload" : {
-\       "commands" : "NERDTreeToggle"
+\       "commands" : ["NERDTreeToggle", "NERDTree", "NERDTreeClose"]
 \   }
 \}
 
@@ -161,6 +188,18 @@ NeoBundleLazy 'klen/python-mode', {
       \ 'autoload' : {
       \   'filetypes' : 'python',
       \ }}
+
+NeoBundleLazy 'google/yapf', {
+      \ 'autoload' : {
+      \   'filetypes' : 'python',
+      \ },
+      \ 'build': {
+      \   'unix': 'pip install --user -e .',
+      \ },
+      \ 'rtd': "~/.vim/bundle/yapf/plugins",
+      \ 'script_type': 'plugin'
+  \ }
+
 
 " NeoBundleLazy 'ehamberg/vim-cute-python', 'moresymbols', {
 "     \ 'autoload': {
@@ -281,13 +320,14 @@ let g:tagbar_type_rst = {
       \ }
 
 
-NeoBundleLazy 'LaTeX-Box-Team/LaTeX-Box', { 'autoload' :
-      \   { 'filetypes' : [ 'tex'
-      \ , 'latex'
-      \ ]
-      \   }
-      \ }
-
+if executable('latex')
+  NeoBundleLazy 'LaTeX-Box-Team/LaTeX-Box', { 'autoload' :
+        \   { 'filetypes' : [ 'tex'
+        \ , 'latex'
+        \ ]
+        \   }
+        \ }
+endif
 
 " NeoBundleLazy 'bbommarito/vim-slim'
 NeoBundleLazy 'slim-template/vim-slim'
@@ -303,22 +343,28 @@ NeoBundleLazy 'mustache/vim-mustache-handlebars', {
       \ 'autoload' : {
       \   'filetypes': ['html', 'mustache', 'hbs']
       \ }}
-
-" NeoBundleLazy 'jnwhiteh/vim-golang'
-NeoBundleLazy "fatih/vim-go", {
-      \ 'lazy': 1,
-      \ 'autoload': {'filetypes': ['go']}}
+if executable('go')
+  " Disable, use ycm's gocode completer
+  NeoBundleLazy "fatih/vim-go", {
+        \ 'autoload': {'filetypes': ['go']}}
+  NeoBundleLazy "jstemmer/gotags", {
+        \ 'autoload': {'filetypes': ['go']}}
+endif
 
 " NeoBundleLazy 'vim-scripts/VimClojure'
-NeoBundleLazy 'derekwyatt/vim-scala', {
-      \ 'autoload': {
-      \   'filetypes': 'scala'
-      \ }
-      \}
-NeoBundleLazy 'gre/play2vim'
+if executable('scala')
+  NeoBundleLazy 'derekwyatt/vim-scala', {
+        \ 'autoload': {
+        \   'filetypes': 'scala'
+        \ }
+        \}
+  NeoBundleLazy 'gre/play2vim'
+endif
 " NeoBundleLazy 'elixir-lang/vim-elixir'
 "NeoBundleLazy 'evanmiller/nginx-vim-syntax'
-NeoBundleLazy 'evanmiller/nginx-vim-syntax', {'autoload': {'filetypes': 'nginx'}}
+if executable('nginx')
+  NeoBundleLazy 'evanmiller/nginx-vim-syntax', {'autoload': {'filetypes': 'nginx'}}
+endif
 NeoBundleLazy 'groenewege/vim-less', {
       \ 'autoload' : {
       \   'filetypes' : 'less',
@@ -433,20 +479,22 @@ NeoBundleLazy 'editorconfig/editorconfig-vim', {
     \ }
 \ }
 
-NeoBundleLazy 'airblade/vim-gitgutter'
-NeoBundle 'tpope/vim-fugitive', {
-      \ 'autoload' : {'commands': 
-      \   ['Gwrite', 'Gcommit', 'Gmove', 'Ggrep', 'Gbrowse', 'Glog',
-      \    'Git', 'Gedit', 'Gsplit', 'Gvsplit', 'Gtabedit', 'Gdiff',
-      \    'Gstatus', 'Gblame'],
-      \ }}
+if executable('git')
 
-NeoBundleLazy 'gregsexton/gitv', {
-      \ 'autoload': {
-      \   'commands': 'Gitv'
-      \ }
-      \}
+  NeoBundleLazy 'airblade/vim-gitgutter'
+  NeoBundle 'tpope/vim-fugitive', {
+        \ 'autoload' : {'commands': 
+        \   ['Gwrite', 'Gcommit', 'Gmove', 'Ggrep', 'Gbrowse', 'Glog',
+        \    'Git', 'Gedit', 'Gsplit', 'Gvsplit', 'Gtabedit', 'Gdiff',
+        \    'Gstatus', 'Gblame'],
+        \ }}
 
+  NeoBundleLazy 'gregsexton/gitv', {
+        \ 'autoload': {
+        \   'commands': 'Gitv'
+        \ }
+        \}
+endif
 "
 " Unite
 "
@@ -477,34 +525,36 @@ NeoBundleLazy 'facebook/vim-flow', {
 "
 "" haskell
 "
-NeoBundleLazy 'dag/vim2hs', {
-      \ 'autoload' : {
-      \   'filetypes' : 'haskell',
-      \ }}
+if executable('ghc-mod')
+  NeoBundleLazy 'dag/vim2hs', {
+        \ 'autoload' : {
+        \   'filetypes' : 'haskell',
+        \ }}
 
 
-NeoBundleLazy 'eagletmt/ghcmod-vim', {
-      \ 'autoload' : {
-      \   'filetypes' : 'haskell',
-      \ }}
+  NeoBundleLazy 'eagletmt/ghcmod-vim', {
+        \ 'autoload' : {
+        \   'filetypes' : 'haskell',
+        \ }}
 
-NeoBundleLazy 'ujihisa/neco-ghc', {
-      \ 'autoload' : {
-      \   'filetypes' : 'haskell',
-      \ }}
+  NeoBundleLazy 'ujihisa/neco-ghc', {
+        \ 'autoload' : {
+        \   'filetypes' : 'haskell',
+        \ }}
 
-NeoBundleLazy 'Twinside/vim-hoogle', {
-      \ 'autoload' : {
-      \   'filetypes' : 'haskell',
-      \ }}
+  NeoBundleLazy 'Twinside/vim-hoogle', {
+        \ 'autoload' : {
+        \   'filetypes' : 'haskell',
+        \ }}
 
-NeoBundleLazy 'carlohamalainen/ghcimportedfrom-vim', {
-      \ 'autoload' : {
-      \   'filetypes' : 'haskell',
-      \ }}
+  NeoBundleLazy 'carlohamalainen/ghcimportedfrom-vim', {
+        \ 'autoload' : {
+        \   'filetypes' : 'haskell',
+        \ }}
+endif
 
 
-NeoBundle 'honza/vim-snippets'
+NeoBundleLazy 'honza/vim-snippets', { 'autoload': { 'on_source': 'ultisnips' } }
 NeoBundle 'SirVer/ultisnips'
 NeoBundle 'ervandew/supertab'
 
