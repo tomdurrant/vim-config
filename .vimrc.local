@@ -3,6 +3,10 @@ colorscheme desert
 set mouse=""
 hi CursorLine term=bold cterm=bold guibg=Grey40
 
+let mapleader = "\\"
+let g:mapleader = "\\"
+let maplocalleader = "\\"
+let g:maplocalleader = "\\"
 
 function! RunShebang()
   if (match(getline(1), '^\#!') == 0)
